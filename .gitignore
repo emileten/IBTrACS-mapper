@@ -72,6 +72,8 @@ htmlcov/
 *.sqlite
 *.sqlite3
 data/
+# Exception: allow test database files
+!**/tests/data/*.db
 
 # Terraform
 .terraform/
