@@ -5,7 +5,7 @@ A monorepo for visualizing storm tracks from the International Best Track Archiv
 ## Structure
 
 ```
-ibtracs-monorepo/
+IBTrACS-mapper/
 ├── frontend/              # React UI application
 ├── backend-api/           # FastAPI backend service
 ├── db-updater/            # Database update job
@@ -38,8 +38,8 @@ A FastAPI service that provides REST endpoints for querying storm track data fro
 
 **Tech Stack:**
 - FastAPI
-- Python 3.12+ (required - see requirements.txt)
-- PostgreSQL (via Supabase) - *Currently configured for SQLite, migration in progress*
+- Python 3.12+ (required - see `runtime.txt` and `requirements.txt`)
+- PostgreSQL (via Supabase) - *Currently configured for SQLite for local development, production uses PostgreSQL*
 
 **Setup:**
 ```bash
@@ -47,21 +47,66 @@ cd backend-api
 python3.12 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
+pip install -r requirements-dev.txt  # For development dependencies
 uvicorn app.main:app --reload
 ```
 
 ### 3. Database Updater (`db-updater/`)
 
-A Python script that runs daily to fetch the latest IBTrACS archive data and update the database.
+A Python script that runs daily to fetch the latest IBTrACS archive data and update the PostgreSQL database. Supports incremental updates by detecting the latest track point date and only adding newer data.
+
+**Tech Stack:**
+- Python 3.12+ (required)
+- PostgreSQL
+- Pydantic for settings and data validation
+- Pandas for CSV processing
 
 **Setup:**
-```bash
-cd db-updater
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-python updater.py
-```
+
+1. **Create virtual environment:**
+   ```bash
+   cd db-updater
+   python3.12 -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   pip install -r requirements-dev.txt  # For development and testing
+   ```
+
+3. **Local development with Docker Compose:**
+   ```bash
+   # Start local PostgreSQL database
+   docker-compose up -d
+   
+   # Set environment variable
+   export USE_LOCAL_DB=true
+   
+   # Run the updater
+   python updater.py
+   ```
+
+4. **Using a remote database:**
+   ```bash
+   export USE_LOCAL_DB=false
+   export DB_HOST=your-db-host
+   export DB_PORT=5432
+   export DB_NAME=ibtracs
+   export DB_USER=your-username
+   export DB_PASSWORD=your-password
+   
+   python updater.py
+   ```
+
+5. **Run tests:**
+   ```bash
+   # Make sure Docker is running for database tests
+   pytest tests/ -v
+   ```
+
+See `db-updater/README.md` for more detailed setup instructions.
 
 ### 4. Infrastructure (`infrastructure/`)
 
@@ -82,8 +127,9 @@ terraform apply
 ### Prerequisites
 
 - Node.js 18+
-- Python 3.12+ (required for backend-api)
-- Terraform 1.6+
+- Python 3.12+ (required for `backend-api` and `db-updater`)
+- Docker Desktop or Docker (required for `db-updater` local development and testing)
+- Terraform 1.6+ (for infrastructure deployment)
 - Git
 
 ### Local Development
@@ -113,43 +159,86 @@ terraform apply
 4. **Set up Database Updater:**
    ```bash
    cd db-updater
-   python -m venv venv
+   python3.12 -m venv venv
    source venv/bin/activate
    pip install -r requirements.txt
-   # Configure environment variables
+   pip install -r requirements-dev.txt
+   
+   # Start local database (requires Docker)
+   docker-compose up -d
+   
+   # Set environment variable for local development
+   export USE_LOCAL_DB=true
+   
+   # Run the updater
    python updater.py
+   
+   # Run tests
+   pytest tests/ -v
    ```
 
 ## CI/CD
 
 The repository uses GitHub Actions for CI/CD:
 
-- **CI Workflow** (`.github/workflows/ci.yml`): Runs tests and linting on all components
-- **Deploy All** (`.github/workflows/deploy-all.yml`): Orchestrates deployment of all components
-- **Component-specific workflows**: Each component has its own deployment workflow in its `.github/workflows/` directory
+### Continuous Integration (CI)
 
-### Path-based Triggers
+The **CI Workflow** (`.github/workflows/ci.yml`) runs automatically on:
+- Push to `main` or `develop` branches
+- Pull requests to `main` or `develop` branches
 
-Workflows are triggered based on file paths:
-- Changes to `frontend/**` → Deploy frontend
-- Changes to `backend-api/**` → Deploy API
-- Changes to `db-updater/**` → Deploy updater
-- Changes to `infrastructure/**` → Run Terraform
+It runs tests and linting for all components:
+- **Frontend**: Runs Vitest tests and ESLint
+- **Backend API**: Runs pytest tests and code quality checks (ruff, black)
+- **DB Updater**: Runs pytest tests with PostgreSQL service
+
+### Deployment
+
+Deployments are **manual-only** and triggered via GitHub Actions UI:
+
+- **Deploy Frontend** (`.github/workflows/deploy-frontend.yml`): Manual deployment for frontend
+- **Deploy Backend API** (`.github/workflows/deploy-backend-api.yml`): Manual deployment for backend API
+- **Deploy DB Updater** (`.github/workflows/deploy-db-updater.yml`): Manual deployment for database updater
+- **Deploy Infrastructure** (`.github/workflows/deploy-infrastructure.yml`): Manual deployment for infrastructure (Terraform)
+
+To trigger a deployment:
+1. Go to the GitHub Actions tab
+2. Select the appropriate workflow
+3. Click "Run workflow"
+4. Select the branch and click "Run workflow"
 
 ## Environment Variables
 
 Each component may require environment variables. See component-specific README files or `.env.example` files for details.
 
 ### Backend API
-- Database connection settings (currently SQLite, migrating to Supabase/PostgreSQL)
+
+For local development (SQLite):
+- `DATABASE_PATH`: Path to SQLite database file (default: `data/storms.db`)
+
+For production (PostgreSQL):
+- Database connection settings (to be configured via Supabase)
 
 ### DB Updater
-- `SUPABASE_URL`: Supabase project URL
-- `SUPABASE_KEY`: Supabase API key
-- IBTrACS archive source URL
+
+**Local Development (Docker Compose):**
+- `USE_LOCAL_DB=true`: Use local Docker Compose database
+
+**Remote Database:**
+- `USE_LOCAL_DB=false`: Use remote database
+- `DB_HOST`: Database host
+- `DB_PORT`: Database port (default: 5432)
+- `DB_NAME`: Database name
+- `DB_USER`: Database username
+- `DB_PASSWORD`: Database password
+
+**Data Source:**
+- `IBTRACS_CSV_URL`: URL to IBTrACS CSV file (default: latest version from NOAA)
 
 ### Infrastructure
+
 - Terraform variables for Supabase and GCP credentials
+- See `infrastructure/terraform/` for specific variable requirements
 
 ## Testing
 
@@ -157,18 +246,24 @@ Run tests for all components:
 
 ```bash
 # Frontend tests
-cd frontend && npm test
+cd frontend
+npm test
 
 # Backend API tests
-cd backend-api && pytest
+cd backend-api
+source venv/bin/activate  # If not already activated
+pytest
 
-# All tests (from root)
-# CI workflow runs all tests automatically
+# DB Updater tests (requires Docker to be running)
+cd db-updater
+source venv/bin/activate  # If not already activated
+export USE_LOCAL_DB=true
+pytest tests/ -v
 ```
 
-## Deployment
+**Note:** The DB Updater tests require Docker to be running. If Docker is not available, the database tests will be skipped automatically. The CSV parsing test does not require Docker.
 
-Deployments are handled via GitHub Actions workflows. Manual deployments can be triggered via workflow_dispatch events.
+The CI workflow runs all tests automatically on push and pull requests.
 
 ## License
 

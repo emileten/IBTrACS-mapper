@@ -1,7 +1,19 @@
 # Database updater dependencies
-# Add packages needed for fetching and processing IBTrACS data
-requests>=2.31.0
-psycopg2-binary>=2.9.9
+# Python 3.12+ required
+
+# Core dependencies
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
 python-dotenv>=1.0.0
-supabase>=2.0.0
+
+# Database
+psycopg2-binary>=2.9.9
+
+# HTTP requests
+requests>=2.31.0
+
+# Data processing
+pandas>=2.0.0
+numpy>=2.0.0
+tqdm>=4.66.0
 

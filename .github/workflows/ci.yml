@@ -79,3 +79,47 @@ jobs:
           ruff check . || echo "Ruff not fully configured"
           black --check . || echo "Black not fully configured"
 
+  test-db-updater:
+    name: Test DB Updater
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./db-updater
+    # Use GitHub Actions service container (NOT Docker Compose)
+    # This avoids Docker-in-Docker (DinD) issues. The service is automatically
+    # started and available at localhost:5432. Tests detect CI=true and skip
+    # Docker Compose, using the service container instead.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ibtracs
+          POSTGRES_PASSWORD: ibtracs_dev
+          POSTGRES_DB: ibtracs
+        options: >-
+          --health-cmd pg_isready -U ibtracs -d ibtracs
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    env:
+      USE_LOCAL_DB: true
+      CI: true
+      GITHUB_ACTIONS: true  # Additional CI indicator for test fixtures
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+      - name: Run tests
+        run: pytest tests/ -v
+        # Note: The test_db fixture in conftest.py handles waiting for PostgreSQL
+        # The GitHub Actions service container should be ready, but the fixture
+        # includes retry logic as a safety measure.
+
