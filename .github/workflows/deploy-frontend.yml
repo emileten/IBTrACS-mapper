@@ -1,0 +1,33 @@
+name: Deploy Frontend
+
+# Manual deployment only - trigger via GitHub Actions UI
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy Frontend to Production
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build
+        run: npm run build
+      
+      - name: Deploy
+        # TODO: Add deployment steps (e.g., deploy to Cloud Storage, Netlify, Vercel, etc.)
+        run: |
+          echo "Deploying frontend build..."
+          # Add your deployment commands here
+          # Example: gsutil -m rsync -r dist/ gs://your-bucket/
+
