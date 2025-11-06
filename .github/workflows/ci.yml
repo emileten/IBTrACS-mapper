@@ -97,7 +97,7 @@ jobs:
           POSTGRES_PASSWORD: ibtracs_dev
           POSTGRES_DB: ibtracs
         options: >-
-          --health-cmd pg_isready -U ibtracs -d ibtracs
+          --health-cmd "pg_isready -U ibtracs -d ibtracs"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
