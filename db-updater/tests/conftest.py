@@ -1,14 +1,15 @@
-"""
-Pytest configuration for db-updater tests
-"""
-import pytest
-import psycopg2
+"""Pytest configuration for db-updater tests."""
+
 import os
 import subprocess
 import time
 from pathlib import Path
+import psycopg2
+import pytest
 
-from config import Settings
+DEFAULT_DATABASE_URL = "postgresql://ibtracs:ibtracs_dev@localhost:5432/ibtracs"
+
+os.environ.setdefault("DATABASE_URL", DEFAULT_DATABASE_URL)
 
 
 @pytest.fixture(scope="session")
@@ -65,9 +66,7 @@ def test_db():
     max_retries = 30
     for i in range(max_retries):
         try:
-            conn = psycopg2.connect(
-                "postgresql://ibtracs:ibtracs_dev@localhost:5432/ibtracs"
-            )
+            conn = psycopg2.connect(os.environ["DATABASE_URL"], connect_timeout=2)
             conn.close()
             break
         except psycopg2.OperationalError:
@@ -91,15 +90,13 @@ def test_db():
 
 @pytest.fixture
 def db_connection(test_db):
-    """Get a database connection for testing"""
-    # Set USE_LOCAL_DB for config
-    os.environ["USE_LOCAL_DB"] = "true"
-    
-    conn = psycopg2.connect(
-        "postgresql://ibtracs:ibtracs_dev@localhost:5432/ibtracs"
-    )
-    yield conn
-    conn.close()
+    """Get a database connection for testing."""
+
+    conn = psycopg2.connect(os.environ["DATABASE_URL"])
+    try:
+        yield conn
+    finally:
+        conn.close()
 
 
 @pytest.fixture

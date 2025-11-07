@@ -29,6 +29,23 @@ jobs:
     defaults:
       run:
         working-directory: ./backend-api
+    # Use GitHub Actions service container for PostgreSQL (mirrors db-updater tests)
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ibtracs
+          POSTGRES_PASSWORD: ibtracs_dev
+          POSTGRES_DB: ibtracs
+        options: >-
+          --health-cmd "pg_isready -U ibtracs -d ibtracs"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    env:
+      DATABASE_URL: postgresql://ibtracs:ibtracs_dev@localhost:5432/ibtracs
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

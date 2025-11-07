@@ -1,13 +1,22 @@
-import sqlite3
+from contextlib import contextmanager
+
+import psycopg2
+from psycopg2.extras import RealDictCursor
+
 from app.core.config import settings
 
 
-def get_db():
-    """Dependency for database connection"""
-    conn = sqlite3.connect(settings.database_path)
-    conn.row_factory = sqlite3.Row  # Makes rows accessible by column name
+@contextmanager
+def _get_connection():
+    conn = psycopg2.connect(settings.database_url, cursor_factory=RealDictCursor)
     try:
         yield conn
     finally:
         conn.close()
+
+
+def get_db():
+    """Dependency for database connection."""
+    with _get_connection() as conn:
+        yield conn
 

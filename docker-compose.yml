@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ibtracs-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ibtracs
+      POSTGRES_PASSWORD: ibtracs_dev
+      POSTGRES_DB: ibtracs
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "ibtracs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend-api:
+    build: ./backend-api
+    container_name: ibtracs-backend-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://ibtracs:ibtracs_dev@postgres:5432/ibtracs
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  db-updater:
+    build: ./db-updater
+    container_name: ibtracs-db-updater
+    restart: "no"
+    environment:
+      DATABASE_URL: postgresql://ibtracs:ibtracs_dev@postgres:5432/ibtracs
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    container_name: ibtracs-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_PROXY_TARGET: http://backend-api:8000
+    depends_on:
+      backend-api:
+        condition: service_started
+    ports:
+      - "5173:5173"
+
+volumes:
+  postgres_data:
+

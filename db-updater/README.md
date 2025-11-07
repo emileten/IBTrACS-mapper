@@ -11,14 +11,11 @@ This component downloads the latest IBTrACS archive data and updates the Postgre
    docker-compose up -d
    ```
 
-2. **Set environment variable:**
+2. **Configure the database URL:**
    ```bash
-   export USE_LOCAL_DB=true
+   export DATABASE_URL=postgresql://ibtracs:ibtracs_dev@localhost:5432/ibtracs
    ```
-   Or create a `.env` file:
-   ```
-   USE_LOCAL_DB=true
-   ```
+   Or create a `.env` file with that value.
 
 3. **Run the updater:**
    ```bash
@@ -29,14 +26,9 @@ This component downloads the latest IBTrACS archive data and updates the Postgre
 
 1. **Set environment variables:**
    ```bash
-   export USE_LOCAL_DB=false
-   export DB_HOST=your-db-host
-   export DB_PORT=5432
-   export DB_NAME=ibtracs
-   export DB_USER=your-username
-   export DB_PASSWORD=your-password
+   export DATABASE_URL=postgresql://<user>:<password>@<host>:5432/<dbname>
    ```
-   Or create a `.env` file with these values.
+   Or supply the individual components in `.env` (`DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_PORT`).
 
 2. **Run the updater:**
    ```bash
@@ -57,5 +49,5 @@ docker-compose down -v
 ## Database Connection
 
 - **Local (Docker Compose):** `postgresql://ibtracs:ibtracs_dev@localhost:5432/ibtracs`
-- **Remote:** Constructed from `DB_*` environment variables
+- **Remote:** Provided via `DATABASE_URL` (or constructed from `DB_*` variables)
 

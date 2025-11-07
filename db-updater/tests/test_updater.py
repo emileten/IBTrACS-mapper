@@ -123,10 +123,6 @@ def test_incremental_update(clean_db):
 
 def test_full_update(clean_db):
     """Test full database update with test CSV"""
-    import os
-    # Ensure USE_LOCAL_DB is set (should already be set by clean_db fixture, but ensure it)
-    os.environ["USE_LOCAL_DB"] = "true"
-    
     test_csv = Path(__file__).parent.parent / "tests" / "data" / "ibtracs_sample.csv"
     
     if not test_csv.exists():

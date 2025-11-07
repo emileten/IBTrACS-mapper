@@ -153,6 +153,12 @@ terraform apply
    python3.12 -m venv venv
    source venv/bin/activate
    pip install -r requirements.txt
+   # Optional: install dev dependencies if you plan to run tests locally
+   pip install -r requirements-dev.txt
+
+   # Point the API at your database (defaults to localhost if unset)
+   export DATABASE_URL=postgresql://ibtracs:ibtracs_dev@localhost:5432/ibtracs
+
    uvicorn app.main:app --reload
    ```
 
@@ -176,6 +182,16 @@ terraform apply
    # Run tests
    pytest tests/ -v
    ```
+
+5. **Run the full stack with Docker Compose (optional):**
+   ```bash
+   cd ..  # repository root
+   docker-compose up --build
+   ```
+   Services exposed locally:
+   - Frontend (Vite dev server): http://localhost:5173
+   - Backend API (FastAPI): http://localhost:8000
+   - PostgreSQL: localhost:5432 (username `ibtracs`, password `ibtracs_dev`)
 
 ## CI/CD
 
@@ -213,11 +229,9 @@ Each component may require environment variables. See component-specific README 
 
 ### Backend API
 
-For local development (SQLite):
-- `DATABASE_PATH`: Path to SQLite database file (default: `data/storms.db`)
-
-For production (PostgreSQL):
-- Database connection settings (to be configured via Supabase)
+- `DATABASE_URL`: Full PostgreSQL connection string (e.g. `postgresql://user:password@host:5432/dbname`)
+- If `DATABASE_URL` is not provided, you can supply individual components via `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
+- When neither is provided, the API defaults to the local Docker Compose database at `postgresql://ibtracs:ibtracs_dev@localhost:5432/ibtracs`
 
 ### DB Updater
 
@@ -252,6 +266,7 @@ npm test
 # Backend API tests
 cd backend-api
 source venv/bin/activate  # If not already activated
+export DATABASE_URL=postgresql://ibtracs:ibtracs_dev@localhost:5432/ibtracs  # or your own URL
 pytest
 
 # DB Updater tests (requires Docker to be running)
