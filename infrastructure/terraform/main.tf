@@ -1,28 +1,18 @@
-# Main Terraform configuration
-# This file orchestrates all infrastructure components
-
 terraform {
-  required_version = ">= 1.0"
-  
-  required_providers {
-    supabase = {
-      source  = "supabase/supabase"
-      version = "~> 1.0"
-    }
-    google = {
-      source  = "hashicorp/google"
-      version = "~> 5.0"
-    }
-  }
+  required_version = ">= 1.6.0"
 }
 
-# Include Supabase resources
-module "supabase" {
-  source = "./supabase"
-}
-
-# Include GCP resources
 module "gcp" {
   source = "./gcp"
+
+  project_id             = var.project_id
+  region                 = var.region
+  zone                   = var.zone
+  root_domain            = var.root_domain
+  api_subdomain          = var.api_subdomain
+  frontend_subdomain     = var.frontend_subdomain
+  db_instance_tier       = var.db_instance_tier
+  db_disk_size_gb        = var.db_disk_size_gb
+  artifact_registry_repo = var.artifact_registry_repo
 }
 
