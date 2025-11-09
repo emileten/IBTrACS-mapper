@@ -21,7 +21,7 @@ output "database_password" {
 
 output "database_url" {
   description = "Connection URL for the application database"
-  value       = "postgresql://${google_sql_user.app.name}:${google_sql_user.app.password}@${google_sql_database_instance.postgres.ip_address[0].ip_address}:5432/${google_sql_database.ibtracs.name}"
+  value       = local.database_url
   sensitive   = true
 }
 
@@ -43,5 +43,30 @@ output "backend_service_account" {
 output "updater_service_account" {
   description = "Service account email for the updater job"
   value       = google_service_account.updater.email
+}
+
+output "scheduler_service_account" {
+  description = "Service account email used by Cloud Scheduler"
+  value       = google_service_account.scheduler.email
+}
+
+output "backend_service_url" {
+  description = "Default Cloud Run URL for the backend API"
+  value       = google_cloud_run_v2_service.backend.uri
+}
+
+output "load_balancer_ip" {
+  description = "Global static IP address serving the HTTPS load balancer"
+  value       = google_compute_global_address.frontend.address
+}
+
+output "frontend_domain" {
+  description = "Frontend custom domain"
+  value       = local.frontend_fqdn
+}
+
+output "api_domain" {
+  description = "API custom domain"
+  value       = local.api_fqdn
 }
 

@@ -50,3 +50,57 @@ variable "artifact_registry_repo" {
   default     = "ibtracs-mapper"
 }
 
+variable "backend_image" {
+  description = "Fully-qualified container image for the backend API (leave null to use the regional Artifact Registry repo)."
+  type        = string
+  default     = null
+}
+
+variable "backend_image_name" {
+  description = "Image name (with tag) stored in the Artifact Registry repository, used when backend_image is null."
+  type        = string
+  default     = "backend-api:latest"
+}
+
+variable "backend_min_instances" {
+  description = "Minimum number of backend API instances to keep warm."
+  type        = number
+  default     = 0
+}
+
+variable "backend_max_instances" {
+  description = "Maximum number of backend API instances."
+  type        = number
+  default     = 10
+}
+
+variable "updater_image" {
+  description = "Fully-qualified container image for the DB updater job (leave null to use the regional Artifact Registry repo)."
+  type        = string
+  default     = null
+}
+
+variable "updater_image_name" {
+  description = "Image name (with tag) stored in the Artifact Registry repository, used when updater_image is null."
+  type        = string
+  default     = "db-updater:latest"
+}
+
+variable "db_updater_schedule" {
+  description = "Cron schedule for triggering the DB updater job."
+  type        = string
+  default     = "0 6 * * MON"
+}
+
+variable "scheduler_time_zone" {
+  description = "Timezone used by Cloud Scheduler."
+  type        = string
+  default     = "Etc/UTC"
+}
+
+variable "ibtracs_csv_url" {
+  description = "Source CSV URL for IBTrACS data."
+  type        = string
+  default     = "https://www.ncei.noaa.gov/data/international-best-track-archive-for-climate-stewardship-ibtracs/v04r01/access/csv/ibtracs.ALL.list.v04r01.csv"
+}
+

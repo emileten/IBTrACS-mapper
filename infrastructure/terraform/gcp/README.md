@@ -1,16 +1,19 @@
 # Terraform – Google Cloud deployment
 
-This configuration lays the groundwork for hosting IBTrACS Mapper entirely on Google Cloud.
+This configuration deploys the full IBTrACS Mapper stack on Google Cloud.
 
-## Currently provisioned resources
+## Provisioned resources
 
-- Required Google Cloud APIs (Run, Cloud SQL, Artifact Registry, Scheduler, etc.)
-- Cloud SQL PostgreSQL instance, database, and application user (publicly accessible for now)
+- Required Google Cloud APIs (Run, Cloud SQL, Artifact Registry, Scheduler, Compute, DNS, IAM, Secret Manager)
+- Cloud SQL PostgreSQL instance, database, and application user (public IP for now)
 - Artifact Registry repository for container images
-- Service accounts for the backend API and DB updater jobs
-- GCS bucket dedicated to serving the frontend build artefacts
-
-These primitives will be expanded with Cloud Run services, Cloud Scheduler jobs, HTTPS load balancers, DNS records, and more as we continue the deployment work.
+- Service accounts for backend API, DB updater task, and scheduler trigger
+- Cloud Run (v2) service for the FastAPI backend
+- Cloud Run (v2) job for the IBTrACS DB updater
+- Cloud Scheduler job (weekly, configurable cron) that triggers the updater job with OIDC auth
+- GCS bucket for the frontend artefacts + CDN-enabled HTTPS external load balancer
+- Serverless network endpoint group + load balancer routing for the API subdomain
+- Managed SSL certificate, global forwarding rule, and DNS zone/records for both frontend and API domains
 
 ## Usage
 
@@ -24,7 +27,15 @@ These primitives will be expanded with Cloud Run services, Cloud Scheduler jobs,
    root_domain       = "ibtracs-mapper.com"
    ```
 
-3. Initialise and apply:
+3. (Optional) Override image tags or schedules, e.g.:
+
+   ```hcl
+   backend_image_name = "backend-api:main"
+   updater_image_name = "db-updater:main"
+   db_updater_schedule = "0 3 * * *" # every day at 03:00 UTC
+   ```
+
+4. Initialise and apply:
 
    ```bash
    terraform init
@@ -34,9 +45,8 @@ These primitives will be expanded with Cloud Run services, Cloud Scheduler jobs,
 
 ## Next steps
 
-- Deploy Cloud Run services for the backend API and updater job
-- Configure Cloud Scheduler to trigger weekly updates
-- Publish the frontend behind HTTPS via Cloud Storage + Load Balancer
-- Manage custom domain + DNS records
-- Secure connectivity (private IPs, Secret Manager, etc.) once the basic flow is validated
+- Restrict Cloud SQL access (Cloud SQL Auth Proxy or private IP)
+- Store secrets (DB credentials) in Secret Manager instead of Terraform state
+- Harden Cloud Run ingress (allow only load-balancer ingress)
+- Add CI/CD image builds that publish to Artifact Registry before Terraform apply
 
