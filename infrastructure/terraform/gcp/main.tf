@@ -23,9 +23,9 @@ resource "random_password" "db_root" {
 }
 
 resource "random_password" "db_app" {
-  length              = 24
-  special             = true
-  override_characters = "-_@"
+  length           = 24
+  special          = true
+  override_special = "-_@"
 }
 
 resource "google_sql_database_instance" "postgres" {
