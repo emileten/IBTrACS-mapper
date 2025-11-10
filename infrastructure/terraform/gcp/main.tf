@@ -216,6 +216,12 @@ resource "google_cloud_run_v2_job" "db_updater" {
           name  = "IBTRACS_CSV_URL"
           value = var.ibtracs_csv_url
         }
+
+        resources {
+          limits = {
+            "memory" = "2Gi"
+          }
+        }
       }
     }
   }
@@ -322,9 +328,9 @@ resource "google_cloud_scheduler_job" "db_updater" {
       "Content-Type" = "application/json"
     }
 
-    body = jsonencode({
+    body = base64encode(jsonencode({
       name = "projects/${var.project_id}/locations/${var.region}/jobs/${google_cloud_run_v2_job.db_updater.name}"
-    })
+    }))
 
     oidc_token {
       service_account_email = google_service_account.scheduler.email

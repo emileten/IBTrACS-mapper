@@ -83,6 +83,7 @@ data/
 .terraform.lock.hcl
 tfplan
 *.tfvars
+!/infrastructure/terraform/terraform.tfvars
 !terraform.tfvars.example
 
 # Build artifacts
