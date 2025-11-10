@@ -143,6 +143,11 @@ resource "google_storage_bucket" "frontend" {
       age = 365
     }
   }
+
+  website {
+    main_page_suffix = "index.html"
+    not_found_page   = "index.html"
+  }
 }
 
 resource "google_storage_bucket_iam_member" "frontend_public" {
@@ -219,8 +224,8 @@ resource "google_cloud_run_v2_job" "db_updater" {
 
         resources {
           limits = {
-            "memory" = "6Gi"
-            "cpu"    = "2"
+            "memory" = "8Gi"
+            "cpu"    = "4"
           }
         }
       }
