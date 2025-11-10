@@ -219,7 +219,8 @@ resource "google_cloud_run_v2_job" "db_updater" {
 
         resources {
           limits = {
-            "memory" = "2Gi"
+            "memory" = "6Gi"
+            "cpu"    = "2"
           }
         }
       }
