@@ -98,7 +98,7 @@ def delete_storm_track_points(conn, storm_id: str, after_date: datetime):
         return deleted
 
 
-def insert_track_points(conn, track_points: list[dict]):
+def insert_track_points(conn, track_points: list[dict], batch_size: int = 5000):
     """
     Insert track points into the database.
     track_points should be a list of dictionaries with keys matching table columns.
@@ -115,39 +115,39 @@ def insert_track_points(conn, track_points: list[dict]):
         'R64_NE', 'R64_SE', 'R64_SW', 'R64_NW'
     ]
     
-    # Prepare values for bulk insert
-    values = []
-    for point in track_points:
-        row = tuple(point.get(col) for col in columns)
-        values.append(row)
+    # Use ON CONFLICT to handle duplicates ("ID", time is primary key)
+    # Build the column list with proper quoting
+    column_identifiers = sql.SQL(', ').join(map(sql.Identifier, columns))
+    conflict_columns = sql.SQL(', ').join([sql.Identifier('ID'), sql.Identifier('time')])
     
-    with conn.cursor() as cur:
-        # Use ON CONFLICT to handle duplicates ("ID", time is primary key)
-        # Build the column list with proper quoting
-        column_identifiers = sql.SQL(', ').join(map(sql.Identifier, columns))
-        conflict_columns = sql.SQL(', ').join([sql.Identifier('ID'), sql.Identifier('time')])
-        
-        # Build the UPDATE SET clause with proper quoting
-        update_parts = []
-        for col in columns:
-            if col == 'ID':  # Skip ID in UPDATE (it's in the conflict target)
-                continue
-            update_parts.append(
-                sql.SQL("{} = EXCLUDED.{}").format(
-                    sql.Identifier(col),
-                    sql.Identifier(col)
-                )
+    # Build the UPDATE SET clause with proper quoting
+    update_parts = []
+    for col in columns:
+        if col == 'ID':  # Skip ID in UPDATE (it's in the conflict target)
+            continue
+        update_parts.append(
+            sql.SQL("{} = EXCLUDED.{}").format(
+                sql.Identifier(col),
+                sql.Identifier(col)
             )
-        update_clause = sql.SQL(', ').join(update_parts)
+        )
+    update_clause = sql.SQL(', ').join(update_parts)
+    
+    insert_query = sql.SQL("""
+        INSERT INTO storms ({}) VALUES %s
+        ON CONFLICT ({}) DO UPDATE SET
+            {}
+    """).format(column_identifiers, conflict_columns, update_clause)
+    
+    total_inserted = 0
+    for start in range(0, len(track_points), batch_size):
+        batch = track_points[start:start + batch_size]
+        values = [tuple(point.get(col) for col in columns) for point in batch]
         
-        insert_query = sql.SQL("""
-            INSERT INTO storms ({}) VALUES %s
-            ON CONFLICT ({}) DO UPDATE SET
-                {}
-        """).format(column_identifiers, conflict_columns, update_clause)
-        
-        execute_values(cur, insert_query, values, page_size=1000)
-        inserted = cur.rowcount
+        with conn.cursor() as cur:
+            execute_values(cur, insert_query, values, page_size=min(1000, len(values)))
+            total_inserted += cur.rowcount
         conn.commit()
-        return inserted
+    
+    return total_inserted
 
