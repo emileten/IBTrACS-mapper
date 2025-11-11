@@ -20,7 +20,7 @@ def _to_float(value: Any) -> float | None:
 
 class StormService:
     """Service for querying storm data from the database."""
-
+    
     def __init__(self, db: PGConnection):
         self.db = db
     
@@ -42,7 +42,7 @@ class StormService:
           AND EXTRACT(MONTH FROM genesis) = %s
         ORDER BY "ID", time
         """
-
+        
         with self.db.cursor() as cursor:
             cursor.execute(query, (year, month))
             rows = cursor.fetchall()
