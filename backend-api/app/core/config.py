@@ -11,6 +11,8 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
 
+    CORS_ORIGINS: str | None = None
+
     # Optional fully-qualified connection string
     DATABASE_URL: Optional[str] = None
 
@@ -35,6 +37,12 @@ class Settings(BaseSettings):
 
         # Fall back to local defaults (Docker Compose / developer machine)
         return DEFAULT_LOCAL_URL
+
+    @property
+    def cors_origins(self) -> list[str] | None:
+        if not self.CORS_ORIGINS:
+            return None
+        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
 
 
 settings = Settings()

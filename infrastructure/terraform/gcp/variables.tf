@@ -51,15 +51,14 @@ variable "artifact_registry_repo" {
 }
 
 variable "backend_image" {
-  description = "Fully-qualified container image for the backend API (leave null to use the regional Artifact Registry repo)."
+  description = "Fully-qualified container image for the backend API."
   type        = string
-  default     = null
 }
 
-variable "backend_image_name" {
-  description = "Image name (with tag) stored in the Artifact Registry repository, used when backend_image is null."
+variable "backend_cors_origins" {
+  description = "Comma-separated list of allowed CORS origins for the backend API."
   type        = string
-  default     = "backend-api:latest"
+  default     = ""
 }
 
 variable "backend_min_instances" {
@@ -75,15 +74,8 @@ variable "backend_max_instances" {
 }
 
 variable "updater_image" {
-  description = "Fully-qualified container image for the DB updater job (leave null to use the regional Artifact Registry repo)."
+  description = "Fully-qualified container image for the DB updater job."
   type        = string
-  default     = null
-}
-
-variable "updater_image_name" {
-  description = "Image name (with tag) stored in the Artifact Registry repository, used when updater_image is null."
-  type        = string
-  default     = "db-updater:latest"
 }
 
 variable "db_updater_schedule" {

@@ -180,6 +180,11 @@ resource "google_cloud_run_v2_service" "backend" {
         name  = "DATABASE_URL"
         value = local.database_url
       }
+
+      env {
+        name  = "CORS_ORIGINS"
+        value = var.backend_cors_origins
+      }
     }
   }
 

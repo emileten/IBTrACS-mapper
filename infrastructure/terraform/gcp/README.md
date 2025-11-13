@@ -27,20 +27,16 @@ This configuration deploys the full IBTrACS Mapper stack on Google Cloud.
    root_domain       = "ibtracs-mapper.com"
    ```
 
-3. (Optional) Override image tags or schedules, e.g.:
-
-   ```hcl
-   backend_image_name = "backend-api:main"
-   updater_image_name = "db-updater:main"
-   db_updater_schedule = "0 3 * * *" # every day at 03:00 UTC
-   ```
-
-4. Initialise and apply:
+3. Build and push container images if you haven't already, then initialise and apply (pass the fully-qualified image tags):
 
    ```bash
    terraform init
-   terraform plan
-   terraform apply
+   terraform plan \
+     -var="backend_image=europe-west1-docker.pkg.dev/<PROJECT>/ibtracs-mapper/backend-api:latest" \
+     -var="updater_image=europe-west1-docker.pkg.dev/<PROJECT>/ibtracs-mapper/db-updater:latest"
+   terraform apply \
+     -var="backend_image=europe-west1-docker.pkg.dev/<PROJECT>/ibtracs-mapper/backend-api:latest" \
+     -var="updater_image=europe-west1-docker.pkg.dev/<PROJECT>/ibtracs-mapper/db-updater:latest"
    ```
 
 ## Next steps

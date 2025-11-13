@@ -50,3 +50,19 @@ variable "artifact_registry_repo" {
   default     = "ibtracs-mapper"
 }
 
+variable "backend_image" {
+  description = "Fully qualified container image for the backend API."
+  type        = string
+}
+
+variable "updater_image" {
+  description = "Fully qualified container image for the DB updater job."
+  type        = string
+}
+
+variable "backend_cors_origins" {
+  description = "Comma-separated list of allowed CORS origins for the backend API."
+  type        = string
+  default     = ""
+}
+

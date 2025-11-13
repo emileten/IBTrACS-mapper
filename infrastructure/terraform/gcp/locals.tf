@@ -15,14 +15,7 @@ locals {
   frontend_fqdn = var.frontend_subdomain == "@" ? var.root_domain : "${var.frontend_subdomain}.${var.root_domain}"
   api_fqdn      = var.api_subdomain == "@" ? var.root_domain : "${var.api_subdomain}.${var.root_domain}"
 
-  backend_image = coalesce(
-    var.backend_image,
-    "${var.region}-docker.pkg.dev/${var.project_id}/${local.artifact_repo_name}/${var.backend_image_name}"
-  )
-
-  updater_image = coalesce(
-    var.updater_image,
-    "${var.region}-docker.pkg.dev/${var.project_id}/${local.artifact_repo_name}/${var.updater_image_name}"
-  )
+  backend_image = var.backend_image
+  updater_image = var.updater_image
 }
 
