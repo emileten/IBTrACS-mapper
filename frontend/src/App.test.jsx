@@ -7,7 +7,13 @@ import App from './App'
 vi.mock('react-leaflet', () => ({
   MapContainer: ({ children }) => <div data-testid="map-container">{children}</div>,
   TileLayer: () => <div data-testid="tile-layer" />,
-  Polyline: () => <div data-testid="polyline" />,
+  Polyline: ({ children }) => <div data-testid="polyline">{children}</div>,
+  Popup: ({ children }) => <div data-testid="popup">{children}</div>,
+  CircleMarker: ({ children }) => <div data-testid="circle-marker">{children}</div>,
+  useMap: () => ({
+    fitBounds: vi.fn(),
+    setView: vi.fn(),
+  }),
 }))
 
 // Mock Leaflet CSS import
